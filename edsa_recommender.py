@@ -31,6 +31,9 @@ import streamlit as st
 # Data handling dependencies
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import re
 
 # Custom Libraries
 from utils.data_loader import load_movie_titles
@@ -39,6 +42,12 @@ from recommenders.content_based import content_model
 
 # Data Loading
 title_list = load_movie_titles('resources/data/movies.csv')
+df_movies = pd.read_csv('resources/data/movies.csv')
+df_rating = pd.read_csv('C:/Users/user/unsupervised-predict-streamlit-template/resources/data/ratings.csv')
+movies_genres = pd.DataFrame(df_movies[['movieId', 'genres']],columns=['movieId', 'genres'])
+movies_genres.genres = movies_genres.genres.apply(lambda x: x.split('|'))
+movies_genres = pd.DataFrame([(tup.movieId, d) for tup in movies_genres.itertuples() for d in tup.genres],columns=['movieId', 'genres'])
+df_merged = df_rating.merge(movies_genres,on='movieId',how='inner')
 
 # App declaration
 def main():
@@ -107,6 +116,8 @@ def main():
     # You may want to add more sections here for aspects such as an EDA,
     # or to provide your business pitch.
 
+    # -------------------------------------------------------------------
+
     if page_selection == "Data Analysis":
         st.title("Exploratory Data Analysis")
 
@@ -139,6 +150,10 @@ def main():
         top_df['No of ratings']=top_df.userId
         top_df.drop('userId',axis=1,inplace=True)
         st.table(top_df.head(10))
+
+
+
+
 
 if __name__ == '__main__':
     main()
