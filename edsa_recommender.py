@@ -45,7 +45,7 @@ def main():
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
     # you are welcome to add more options to enrich your app.
-    page_options = ["Recommender System","Solution Overview"]
+    page_options = ["Recommender System","Solution Overview","Data Analysis"]
 
     # -------------------------------------------------------------------
     # ----------- !! THIS CODE MUST NOT BE ALTERED !! -------------------
@@ -107,6 +107,38 @@ def main():
     # You may want to add more sections here for aspects such as an EDA,
     # or to provide your business pitch.
 
+    if page_selection == "Data Analysis":
+        st.title("Exploratory Data Analysis")
+
+        # Create dataframe containing only the movieId and genres
+        movies_genres = pd.DataFrame(df_movies[['movieId', 'genres']],
+                             columns=['movieId', 'genres'])
+
+        # Split genres seperated by "|" and create a list containing the genres allocated to each movie
+        movies_genres.genres = movies_genres.genres.apply(lambda x: x.split('|'))
+
+        # Create expanded dataframe where each movie-genre combination is in a seperate row
+        movies_genres = pd.DataFrame([(tup.movieId, d) for tup in movies_genres.itertuples() for d in tup.genres],
+                                     columns=['movieId', 'genres'])
+
+        # Plot the genres from most common to least common
+        plot = plt.figure(figsize=(15, 10))
+        plt.title('Most common genres\n', fontsize=20)
+        sns.countplot(y="genres", data=movies_genres,
+              order=movies_genres['genres'].value_counts(ascending=False).index,
+              palette='Blues_r')
+        st.pyplot(plot)
+
+        plot = plt.figure(figsize=(15, 10))
+        plt.title('Average rating per genre\n', fontsize=20)
+        df_merged.groupby(['genres'])['rating'].mean().plot(kind = "bar")
+        st.pyplot(plot)
+
+        st.write("Top 10 users with the most ratings")
+        top_df = pd.DataFrame(df_merged.userId.value_counts(),columns=(['No of ratings','userId']))
+        top_df['No of ratings']=top_df.userId
+        top_df.drop('userId',axis=1,inplace=True)
+        st.table(top_df.head(10))
 
 if __name__ == '__main__':
     main()
